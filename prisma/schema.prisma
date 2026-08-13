@@ -1,0 +1,53 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// Un exercice du programme (ex: "Développé incliné haltères")
+model Exercise {
+  id    String @id @default(cuid())
+  name  String @unique
+  split String // "UPPER" | "LOWER"  (SQLite ne supporte pas les enums Prisma)
+  kind  String // "POLY" (polyarticulaire) | "ISO" (isolation) → détermine le repos par défaut
+  order Int    @default(0)
+  sets  Set[]
+}
+
+// Une séance effectuée (un jour donné, un split donné)
+model Session {
+  id    String   @id @default(cuid())
+  date  DateTime @default(now())
+  split String
+  note  String?
+  sets  Set[]
+}
+
+// Une série réalisée : le cœur de la donnée de perf
+model Set {
+  id         String   @id @default(cuid())
+  sessionId  String
+  exerciseId String
+  setNumber  Int
+  weight     Float
+  reps       Int
+  note       String? // "échec", "essoufflé", "douleur épaule"…
+  doneAt     DateTime @default(now())
+
+  session  Session  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  exercise Exercise @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
+
+  @@index([exerciseId, doneAt])
+}
+
+// Un programme généré par l'IA (historique des plans)
+model Plan {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  split     String
+  context   String? // consignes utilisateur envoyées à l'IA ("11 jours sans salle"…)
+  raw       String // sortie brute de Gemini
+}
