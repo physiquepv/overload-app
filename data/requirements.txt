@@ -1,0 +1,3 @@
+requests>=2.31
+pyphen>=0.14
+pronouncing>=0.2  # dictionnaire CMU pour un comptage de syllabes anglais précis
